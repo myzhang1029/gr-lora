@@ -1,0 +1,287 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: top_block
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+    window_size: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: code_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 291]
+    rotation: 0
+    state: enabled
+- name: header
+  id: variable
+  parameters:
+    comment: ''
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 419]
+    rotation: 0
+    state: enabled
+- name: ldr
+  id: variable
+  parameters:
+    comment: ''
+    value: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 355]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 250e3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 131]
+    rotation: 0
+    state: enabled
+- name: spreading_factor
+  id: variable
+  parameters:
+    comment: ''
+    value: '8'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 227]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: lora_mod_iq_sink.32iq
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [944, 107]
+    rotation: 0
+    state: disabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 257]
+    rotation: 0
+    state: enabled
+- name: blocks_throttle2_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [592, 232.0]
+    rotation: 180
+    state: enabled
+- name: lora_decode_0
+  id: lora_decode
+  parameters:
+    affinity: ''
+    alias: ''
+    code_rate: code_rate
+    comment: ''
+    crc: 'True'
+    header: header
+    low_data_rate: ldr
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    payload_len: '4'
+    spreading_factor: spreading_factor
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 371]
+    rotation: 0
+    state: enabled
+- name: lora_demod_0
+  id: lora_demod
+  parameters:
+    affinity: ''
+    alias: ''
+    beta: '25.0'
+    code_rate: '1'
+    comment: ''
+    crc: 'True'
+    fft_factor: '2'
+    fs_bw_ratio: '2'
+    header: 'True'
+    low_data_rate: ldr
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    payload_len: '4'
+    peak_search_algorithm: '0'
+    peak_search_phase_k: '4'
+    spreading_factor: spreading_factor
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [448, 371]
+    rotation: 0
+    state: enabled
+- name: lora_encode_0
+  id: lora_encode
+  parameters:
+    affinity: ''
+    alias: ''
+    code_rate: code_rate
+    comment: ''
+    crc: 'False'
+    header: header
+    low_data_rate: ldr
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    spreading_factor: spreading_factor
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 99]
+    rotation: 0
+    state: enabled
+- name: lora_mod_0
+  id: lora_mod
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    spreading_factor: spreading_factor
+    sync_word: '0x12'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 115]
+    rotation: 0
+    state: enabled
+- name: network_socket_pdu_0
+  id: network_socket_pdu
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    host: 127.0.0.1
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mtu: '10000'
+    port: '52001'
+    tcp_no_delay: 'False'
+    type: UDP_SERVER
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 160.0]
+    rotation: 0
+    state: enabled
+- name: network_socket_pdu_1
+  id: network_socket_pdu
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    host: 127.0.0.1
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mtu: '10000'
+    port: '52002'
+    tcp_no_delay: 'False'
+    type: UDP_CLIENT
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 408.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_throttle2_0, '0', lora_demod_0, '0']
+- [lora_decode_0, out, blocks_message_debug_0, print_pdu]
+- [lora_decode_0, out, network_socket_pdu_1, pdus]
+- [lora_demod_0, out, lora_decode_0, in]
+- [lora_encode_0, out, lora_mod_0, in]
+- [lora_mod_0, '0', blocks_file_sink_0_0, '0']
+- [lora_mod_0, '0', blocks_throttle2_0, '0']
+- [network_socket_pdu_0, pdus, lora_encode_0, in]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2
