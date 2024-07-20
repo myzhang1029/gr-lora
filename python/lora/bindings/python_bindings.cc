@@ -21,6 +21,12 @@ namespace py = pybind11;
 // Please do not delete
 /**************************************/
 // BINDING_FUNCTION_PROTOTYPES(
+void bind_decode(py::module &m);
+void bind_demod(py::module &m);
+void bind_encode(py::module &m);
+void bind_mod(py::module &m);
+void bind_pyramid_demod(py::module &m);
+void bind_weak_demod(py::module &m);
 // ) END BINDING_FUNCTION_PROTOTYPES
 
 
@@ -49,5 +55,11 @@ PYBIND11_MODULE(lora_python, m)
     // Please do not delete
     /**************************************/
     // BINDING_FUNCTION_CALLS(
+    bind_decode(m);
+    bind_demod(m);
+    bind_encode(m);
+    bind_mod(m);
+    bind_pyramid_demod(m);
+    bind_weak_demod(m);
     // ) END BINDING_FUNCTION_CALLS
 }

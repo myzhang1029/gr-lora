@@ -11,7 +11,14 @@
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
 
-list(APPEND lora_sources)
+list(APPEND lora_sources
+    demod_impl.cc
+    mod_impl.cc
+    pyramid_demod_impl.cc
+    decode_impl.cc
+    encode_impl.cc
+    weak_demod_impl.cc
+)
 
 set(lora_sources
     "${lora_sources}"
@@ -22,7 +29,7 @@ if(NOT lora_sources)
 endif(NOT lora_sources)
 
 add_library(gnuradio-lora SHARED ${lora_sources})
-target_link_libraries(gnuradio-lora gnuradio::gnuradio-runtime)
+target_link_libraries(gnuradio-lora gnuradio::gnuradio-runtime gnuradio::gnuradio-blocks gnuradio::gnuradio-fft Volk::volk)
 target_include_directories(
     gnuradio-lora
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>

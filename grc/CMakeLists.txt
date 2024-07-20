@@ -6,4 +6,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-install(FILES DESTINATION share/gnuradio/grc/blocks)
+install(FILES
+    lora_demod.block.yml
+    lora_mod.block.yml
+    lora_pyramid_demod.block.yml
+    lora_decode.block.yml
+    lora_encode.block.yml
+    lora_weak_demod.block.yml DESTINATION share/gnuradio/grc/blocks)

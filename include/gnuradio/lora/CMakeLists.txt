@@ -9,4 +9,12 @@
 ########################################################################
 # Install public header files
 ########################################################################
-install(FILES api.h DESTINATION include/gnuradio/lora)
+install(FILES
+    api.h
+    demod.h
+    mod.h
+    pyramid_demod.h
+    decode.h
+    encode.h
+    weak_demod.h DESTINATION include/lora
+)
