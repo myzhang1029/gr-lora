@@ -35,7 +35,7 @@ outputs:
     id: out
 
 templates:
-    imports: import lora
+    imports: from gnuradio import lora
     make: lora.encode(${spreading_factor}, ${code_rate}, ${crc}, ${low_data_rate},
         ${header})
 

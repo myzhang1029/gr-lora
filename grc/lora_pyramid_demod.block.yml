@@ -41,7 +41,7 @@ outputs:
     id: out
 
 templates:
-    imports: import lora
+    imports: from gnuradio import lora
     make: lora.pyramid_demod(${spreading_factor}, ${low_data_rate}, ${beta}, ${fft_factor},
         ${threshold}, ${fs_bw_ratio})
 

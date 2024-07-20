@@ -23,7 +23,7 @@ outputs:
     dtype: complex
 
 templates:
-    imports: import lora
+    imports: from gnuradio import lora
     make: lora.mod(${spreading_factor}, ${sync_word})
 
 file_format: 1

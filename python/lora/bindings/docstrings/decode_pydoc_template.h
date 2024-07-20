@@ -14,6 +14,8 @@
   and will be overwritten during the build process
  */
 
-static const char *__doc_gr_lora_decode = R"doc()doc";
 
-static const char *__doc_gr_lora_decode_make = R"doc()doc";
+static const char* __doc_gr_lora_decode = R"doc()doc";
+
+
+static const char* __doc_gr_lora_decode_make = R"doc()doc";

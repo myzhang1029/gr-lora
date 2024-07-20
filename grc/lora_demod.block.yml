@@ -62,7 +62,7 @@ outputs:
     id: out
 
 templates:
-    imports: import lora
+    imports: from gnuradio import lora
     make: lora.demod(${spreading_factor}, ${header}, ${payload_len}, ${code_rate},
         ${crc}, ${low_data_rate}, ${beta}, ${fft_factor}, ${peak_search_algorithm},
         ${peak_search_phase_k}, ${fs_bw_ratio})

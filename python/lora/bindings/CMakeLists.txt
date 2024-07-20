@@ -24,7 +24,14 @@ include(GrPybind)
 # Python Bindings
 ########################################################################
 
-list(APPEND lora_python_files python_bindings.cc)
+list(APPEND lora_python_files
+        decode_python.cc
+        demod_python.cc
+        encode_python.cc
+        mod_python.cc
+        pyramid_demod_python.cc
+        weak_demod_python.cc
+        python_bindings.cc)
 
 gr_pybind_make_oot(lora ../../.. gr::lora "${lora_python_files}")
 

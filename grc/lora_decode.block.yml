@@ -41,7 +41,7 @@ outputs:
     id: header
 
 templates:
-    imports: import lora
+    imports: from gnuradio import lora
     make: lora.decode(${spreading_factor}, ${header}, ${payload_len}, ${code_rate},
         ${crc}, ${low_data_rate})
 

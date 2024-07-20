@@ -78,7 +78,7 @@ outputs:
 file_format: 1
 
 templates:
-  imports: import lora
+  imports: from gnuradio import lora
   make: lora.weak_demod(${spreading_factor}, ${header}, ${payload_len}, ${code_rate},
         ${crc}, ${low_data_rate}, ${sym_num}, ${beta}, ${fft_factor}, ${peak_search_algorithm},
         ${peak_search_phase_k}, ${fs_bw_ratio})
