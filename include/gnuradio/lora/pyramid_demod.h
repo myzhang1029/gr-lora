@@ -22,7 +22,7 @@
 #ifndef INCLUDED_LORA_PYRAMID_DEMOD_H
 #define INCLUDED_LORA_PYRAMID_DEMOD_H
 
-#include <lora/api.h>
+#include <gnuradio/lora/api.h>
 #include <gnuradio/block.h>
 
 #define PY_DEMOD_HISTORY_DEPTH        3

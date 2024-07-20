@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Bastille Networks.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -53,7 +53,7 @@ namespace gr {
 
       d_in_port = pmt::mp("in");
       message_port_register_in(d_in_port);
-      set_msg_handler(d_in_port, boost::bind(&mod_impl::modulate, this, _1));
+      set_msg_handler(d_in_port, [this](pmt::pmt_t msg) { this->modulate(msg); });
 
       d_fft_size = (1 << d_sf);
 
@@ -128,7 +128,7 @@ namespace gr {
       {
         d_iq_out.push_back(iq_out[i]);  // Writing to buffer separately for now to expose local packet for debugging
       }
-      
+
       // Append zero-magnitude samples to kick squelch in simulation
       d_iq_out.insert(d_iq_out.end(), 4*d_fft_size+128, gr_complex(std::polar(0.0, 0.0)));
 

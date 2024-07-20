@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Bastille Networks.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -90,7 +90,7 @@ namespace gr {
       message_port_register_out(d_out_port);
       message_port_register_out(d_header_port);
 
-      set_msg_handler(d_in_port, boost::bind(&decode_impl::decode, this, _1));
+      set_msg_handler(d_in_port, [this](pmt::pmt_t msg) { this->decode(msg); });
 
       d_whitening_sequence = whitening_sequence;
       if ((d_sf < 6) || (d_sf > 12))
@@ -215,7 +215,7 @@ namespace gr {
             // p3p2p1 = 111, wrong d4
             codewords[i] ^= HAMMING_D4_BITMASK;
             break;
-          
+
           default:
             // no error, parity error or more than one bit error
             break;
@@ -341,7 +341,7 @@ namespace gr {
         {
           is_valid = false;
         }
-        
+
         if (symbol_id.substr(0,6) == "header")
         {
           pmt::pmt_t dict = pmt::make_dict();
@@ -431,4 +431,3 @@ namespace gr {
 
   } /* namespace lora */
 } /* namespace gr */
-

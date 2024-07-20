@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Bastille Networks.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -105,7 +105,7 @@ namespace gr {
       d_out_port = pmt::mp("out");
       message_port_register_out(d_out_port);
 
-      set_msg_handler(d_header_port, boost::bind(&demod_impl::parse_header, this, _1));
+      set_msg_handler(d_header_port, [this](pmt::pmt_t msg) { this->parse_header(msg); });
 
       d_state = S_RESET;
 
@@ -113,7 +113,7 @@ namespace gr {
       d_num_samples = d_p*d_num_symbols;
       d_bin_size = d_fft_size_factor*d_num_symbols;
       d_fft_size = d_fft_size_factor*d_num_samples;
-      d_fft = new fft::fft_complex(d_fft_size, true, 1);
+      d_fft = new fft::fft_complex_fwd(d_fft_size, 1);
       d_overlaps = OVERLAP_DEFAULT;
       d_offset = 0;
       d_preamble_drift_max = d_fft_size_factor * (d_ldr ? 2 : 1);
@@ -197,7 +197,7 @@ namespace gr {
       {
         max_idx = fft_add(fft_result, buffer2, buffer_c, max_val_p, 0);
       }
-      
+
       return max_idx;
     }
 
@@ -209,7 +209,7 @@ namespace gr {
       volk_32fc_s32fc_multiply_32fc(buffer_c, fft_result, s, d_bin_size);
       volk_32fc_x2_add_32fc(buffer_c, buffer_c, &fft_result[d_fft_size-d_bin_size], d_bin_size);
       volk_32fc_magnitude_32f(buffer, buffer_c, d_bin_size);
-      return argmax_32f(buffer, max_val_p); 
+      return argmax_32f(buffer, max_val_p);
     }
 
     uint16_t
@@ -247,7 +247,7 @@ namespace gr {
         d_payload_len       = pmt::to_long(pmt::dict_ref(dict, pmt::intern("payload_len"), not_found));
         d_cr                = pmt::to_long(pmt::dict_ref(dict, pmt::intern("cr"), not_found));
         d_crc               = pmt::to_bool(pmt::dict_ref(dict, pmt::intern("crc"), not_found));
-        d_packet_symbol_len = 8 + std::max((4+d_cr)*(int)std::ceil((2.0*d_payload_len-d_sf+7+4*d_crc-5*!d_header)/(d_sf-2*d_ldr)), 0); 
+        d_packet_symbol_len = 8 + std::max((4+d_cr)*(int)std::ceil((2.0*d_payload_len-d_sf+7+4*d_crc-5*!d_header)/(d_sf-2*d_ldr)), 0);
 
         #if DEBUG >= DEBUG_INFO
           std::cout << "PARSE HEADER" << std::endl;
@@ -482,7 +482,7 @@ namespace gr {
           num_consumed = (int)round(2.25*d_num_samples + d_p*idx/2.0/d_fft_size_factor);
 
           // refine CFO
-          volk_32fc_x2_multiply_32fc(up_block, 
+          volk_32fc_x2_multiply_32fc(up_block,
             &in0[(int)round((DEMOD_HISTORY_DEPTH-1-5.25)*d_num_samples) + num_consumed],
             &d_downchirp[0], d_num_samples);
           memset(d_fft->get_inbuf(),        0, d_fft_size*sizeof(gr_complex));
@@ -525,7 +525,7 @@ namespace gr {
           pmt::pmt_t dict     = pmt::make_dict();
           dict = pmt::dict_add(dict, pmt::intern("id"), pmt::intern("header"));
           pmt::pmt_t msg_pair = pmt::cons(dict, header);
-          message_port_pub(d_out_port, msg_pair); 
+          message_port_pub(d_out_port, msg_pair);
         }
         else if (d_symbols.size() > 8)
         {
@@ -629,4 +629,3 @@ namespace gr {
 
   } /* namespace lora */
 } /* namespace gr */
-

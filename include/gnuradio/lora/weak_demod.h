@@ -21,7 +21,7 @@
 #ifndef INCLUDED_LORA_WEAK_DEMOD_H
 #define INCLUDED_LORA_WEAK_DEMOD_H
 
-#include <lora/api.h>
+#include <gnuradio/lora/api.h>
 #include <gnuradio/block.h>
 
 #define WEAK_REQUIRED_PREAMBLE_CHIRPS   5

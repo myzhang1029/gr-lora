@@ -22,9 +22,9 @@
 #ifndef INCLUDED_LORA_ENCODE_H
 #define INCLUDED_LORA_ENCODE_H
 
-#include <lora/api.h>
+#include <gnuradio/lora/api.h>
 #include <gnuradio/block.h>
-#include <lora/lora.h>
+#include <gnuradio/lora/lora.h>
 
 namespace gr {
   namespace lora {

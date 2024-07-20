@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Bastille Networks.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -30,7 +30,7 @@
 #include <gnuradio/fft/fft.h>
 #include <gnuradio/fft/window.h>
 #include <volk/volk.h>
-#include "lora/demod.h"
+#include "gnuradio/lora/demod.h"
 #include "utilities.h"
 
 namespace gr {
@@ -75,9 +75,9 @@ namespace gr {
       uint16_t d_peak_search_algorithm;
       uint16_t d_peak_search_phase_k;
 
-      fft::fft_complex   *d_fft;
-      std::vector<float> d_window;
-      float              d_beta;
+      fft::fft_complex_fwd *d_fft;
+      std::vector<float>   d_window;
+      float                d_beta;
 
       std::vector<gr_complex> d_upchirp;
       std::vector<gr_complex> d_downchirp;
@@ -108,7 +108,7 @@ namespace gr {
       uint32_t fft_add(const lv_32fc_t *fft_result, float *buffer, gr_complex *buffer_c,
                            float *max_val_p, float phase_offset);
       void dynamic_compensation(std::vector<uint16_t>& compensated_symbols);
-      
+
       void parse_header(pmt::pmt_t dict);
 
       // Where all the action really happens
@@ -124,4 +124,3 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_LORA_DEMOD_IMPL_H */
-

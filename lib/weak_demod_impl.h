@@ -31,7 +31,7 @@
 #include <gnuradio/fft/fft.h>
 #include <gnuradio/fft/window.h>
 #include <volk/volk.h>
-#include <lora/weak_demod.h>
+#include <gnuradio/lora/weak_demod.h>
 #include "utilities.h"
 
 namespace gr {
@@ -78,9 +78,9 @@ namespace gr {
       uint16_t d_peak_search_algorithm;
       uint16_t d_peak_search_phase_k;
 
-      fft::fft_complex   *d_fft;
-      std::vector<float> d_window;
-      float              d_beta;
+      fft::fft_complex_fwd *d_fft;
+      std::vector<float>   d_window;
+      float                d_beta;
 
       std::vector<gr_complex> d_upchirp;
       std::vector<gr_complex> d_downchirp;
@@ -121,7 +121,7 @@ namespace gr {
                       float *fft_add1,
                       float *fft_add2,
                       float *p_max_val);
-      
+
       void dynamic_compensation(std::vector<uint16_t>& compensated_symbols);
 
       // Where all the action really happens
@@ -138,4 +138,3 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_LORA_WEAK_DEMOD_IMPL_H */
-

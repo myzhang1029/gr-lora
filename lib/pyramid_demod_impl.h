@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2020 jkadbear.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -32,7 +32,7 @@
 #include <gnuradio/fft/fft.h>
 #include <gnuradio/fft/window.h>
 #include <volk/volk.h>
-#include <lora/pyramid_demod.h>
+#include <gnuradio/lora/pyramid_demod.h>
 #include "utilities.h"
 
 namespace gr {
@@ -115,9 +115,9 @@ namespace gr {
       std::vector<packet_state>             d_packet_state_list;
       std::deque<uint16_t>            d_packet_id_pool;
 
-      fft::fft_complex   *d_fft;
-      std::vector<float> d_window;
-      float              d_beta;
+      fft::fft_complex_fwd *d_fft;
+      std::vector<float>   d_window;
+      float                d_beta;
 
       std::vector<gr_complex> d_upchirp;
       std::vector<gr_complex> d_downchirp;
@@ -160,4 +160,3 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_LORA_PYRAMID_DEMOD_IMPL_H */
-

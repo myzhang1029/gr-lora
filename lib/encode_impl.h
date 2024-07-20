@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 Bastille Networks.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -24,7 +24,7 @@
 #include <volk/volk.h>
 #include <bitset>
 #include <cmath>
-#include <lora/encode.h>
+#include <gnuradio/lora/encode.h>
 #include "utilities.h"
 
 namespace gr {
@@ -37,7 +37,7 @@ namespace gr {
 
       pmt::pmt_t d_in_port;
       pmt::pmt_t d_out_port;
-      
+
       unsigned char d_sf;
       unsigned char d_cr;
       bool          d_crc;
@@ -76,4 +76,3 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_LORA_ENCODE_IMPL_H */
-

@@ -22,7 +22,7 @@
 #ifndef INCLUDED_LORA_DEMOD_H
 #define INCLUDED_LORA_DEMOD_H
 
-#include <lora/api.h>
+#include <gnuradio/lora/api.h>
 #include <gnuradio/block.h>
 
 #define DEMOD_HISTORY_DEPTH        7

@@ -114,7 +114,7 @@ namespace gr {
       d_num_samples = d_p*d_num_symbols;
       d_bin_size = d_fft_size_factor*d_num_symbols;
       d_fft_size = d_fft_size_factor*d_num_samples;
-      d_fft = new fft::fft_complex(d_fft_size, true, 1);
+      d_fft = new fft::fft_complex_fwd(d_fft_size, 1);
       d_overlaps = OVERLAP_DEFAULT;
       d_offset = 0;
       d_preamble_drift_max = d_fft_size_factor * (d_ldr ? 2 : 1);
@@ -483,4 +483,3 @@ namespace gr {
 
   } /* namespace lora */
 } /* namespace gr */
-
