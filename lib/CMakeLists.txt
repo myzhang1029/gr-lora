@@ -12,6 +12,7 @@
 include(GrPlatform) #define LIB_SUFFIX
 
 list(APPEND lora_sources
+    detect_impl.cc
     demod_impl.cc
     mod_impl.cc
     pyramid_demod_impl.cc

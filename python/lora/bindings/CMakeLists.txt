@@ -27,6 +27,7 @@ include(GrPybind)
 list(APPEND lora_python_files
         decode_python.cc
         demod_python.cc
+        detect_python.cc
         encode_python.cc
         mod_python.cc
         pyramid_demod_python.cc

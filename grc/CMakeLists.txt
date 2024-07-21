@@ -7,6 +7,7 @@
 #
 
 install(FILES
+    lora_detect.block.yml
     lora_demod.block.yml
     lora_mod.block.yml
     lora_pyramid_demod.block.yml

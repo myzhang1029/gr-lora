@@ -11,6 +11,7 @@
 ########################################################################
 install(FILES
     api.h
+    detect.h
     demod.h
     mod.h
     pyramid_demod.h
