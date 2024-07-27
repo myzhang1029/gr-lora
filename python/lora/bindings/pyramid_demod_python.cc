@@ -23,7 +23,7 @@
 
 namespace py = pybind11;
 
-#include <lora/pyramid_demod.h>
+#include <gnuradio/lora/pyramid_demod.h>
 // pydoc.h is automatically generated in the build directory
 #include <pyramid_demod_pydoc.h>
 

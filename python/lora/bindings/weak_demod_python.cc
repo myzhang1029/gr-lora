@@ -23,7 +23,7 @@
 
 namespace py = pybind11;
 
-#include <lora/weak_demod.h>
+#include <gnuradio/lora/weak_demod.h>
 // pydoc.h is automatically generated in the build directory
 #include <weak_demod_pydoc.h>
 

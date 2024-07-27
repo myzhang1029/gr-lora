@@ -23,7 +23,7 @@
 
 namespace py = pybind11;
 
-#include <lora/decode.h>
+#include <gnuradio/lora/decode.h>
 // pydoc.h is automatically generated in the build directory
 #include <decode_pydoc.h>
 

@@ -23,7 +23,7 @@
 
 namespace py = pybind11;
 
-#include <lora/mod.h>
+#include <gnuradio/lora/mod.h>
 // pydoc.h is automatically generated in the build directory
 #include <mod_pydoc.h>
 

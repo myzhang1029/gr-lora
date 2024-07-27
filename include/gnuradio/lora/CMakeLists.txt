@@ -16,5 +16,5 @@ install(FILES
     pyramid_demod.h
     decode.h
     encode.h
-    weak_demod.h DESTINATION include/lora
+    weak_demod.h DESTINATION include/gnuradio/lora
 )
