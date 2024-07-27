@@ -42,13 +42,10 @@ parameters:
 inputs:
 -   domain: stream
     dtype: complex
-    id: in
-
-outputs:
 
 templates:
     imports: from gnuradio import lora
     make: lora.detect(${spreading_factor}, ${beta}, ${fft_factor}, ${peak_search_algorithm},
-        ${peak_search_phase_k}, ${fs_bw_ratio}, ${on_length}, '${filename_template}')
+        ${peak_search_phase_k}, ${fs_bw_ratio}, ${on_length}, ${filename_template})
 
 file_format: 1

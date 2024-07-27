@@ -209,13 +209,6 @@ namespace gr {
       return max_idx;
     }
 
-    void
-    detect_impl::forecast (int noutput_items,
-                          gr_vector_int &ninput_items_required)
-    {
-      ninput_items_required[0] = noutput_items * (1 << d_sf) * 2;
-    }
-
     int
     detect_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
@@ -225,8 +218,6 @@ namespace gr {
       if (ninput_items[0] < DEMOD_HISTORY_DEPTH*d_num_samples) return 0;
       const gr_complex *in0 = (const gr_complex *) input_items[0];
       const gr_complex *in  = &in0[(DEMOD_HISTORY_DEPTH-1)*d_num_samples];
-      uint32_t  *out    = (uint32_t   *) output_items[0];
-
 
       uint32_t num_consumed   = d_num_samples;
       uint32_t max_idx        = 0;

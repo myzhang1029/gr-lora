@@ -111,12 +111,8 @@ namespace gr {
                                    gr_complex *buffer_c, float *max_val_p);
       uint32_t fft_add(const lv_32fc_t *fft_result, float *buffer, gr_complex *buffer_c,
                            float *max_val_p, float phase_offset);
-      void dynamic_compensation(std::vector<uint16_t>& compensated_symbols);
-
-      void parse_header(pmt::pmt_t dict);
 
       // Where all the action really happens
-      void forecast (int noutput_items, gr_vector_int &ninput_items_required);
 
       int general_work(int noutput_items,
            gr_vector_int &ninput_items,
