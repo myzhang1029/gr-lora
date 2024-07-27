@@ -40,14 +40,11 @@
 namespace gr {
   namespace lora {
 
-    enum demod_state_t {
+    enum detect_state_t {
       S_RESET,
       S_PREFILL,
       S_DETECT_PREAMBLE,
-      S_SFD_SYNC,
-      S_READ_HEADER,
-      S_READ_PAYLOAD,
-      S_OUT
+      S_OUTPUT
     };
 
     /*!

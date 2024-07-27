@@ -45,7 +45,7 @@ namespace gr {
       pmt::pmt_t d_header_port;
       pmt::pmt_t d_out_port;
 
-      demod_state_t d_state;
+      detect_state_t d_state;
       uint8_t d_sf;
       uint8_t d_cr;
       uint8_t d_payload_len;
@@ -87,7 +87,8 @@ namespace gr {
 
       std::vector<float> d_symbols;
 
-      std::ofstream f_raw, f_up_windowless, f_up, f_down, f_fft;
+      std::ofstream f_current_out;
+      std::string d_current_filename;
 
       uint16_t d_on_length;
       std::string d_filename_template;

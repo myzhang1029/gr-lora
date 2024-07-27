@@ -69,11 +69,6 @@ namespace gr {
       : gr::block("detect",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(0, 0, 0)),
-        f_raw("raw.out", std::ios::out),
-        f_fft("fft.out", std::ios::out),
-        f_up_windowless("up_windowless.out", std::ios::out),
-        f_up("up.out", std::ios::out),
-        f_down("down.out", std::ios::out),
         d_sf(spreading_factor),
         d_beta(beta),
         d_fft_size_factor(fft_factor),
@@ -87,13 +82,6 @@ namespace gr {
       assert(d_fft_size_factor > 0);
       assert(((int)fs_bw_ratio) == fs_bw_ratio);
       d_p = (int) fs_bw_ratio;
-
-      d_header_port = pmt::mp("header");
-      message_port_register_in(d_header_port);
-      d_out_port = pmt::mp("out");
-      message_port_register_out(d_out_port);
-
-      set_msg_handler(d_header_port, [this](pmt::pmt_t msg) { this->parse_header(msg); });
 
       d_state = S_RESET;
 
@@ -222,56 +210,6 @@ namespace gr {
     }
 
     void
-    detect_impl::parse_header(pmt::pmt_t dict)
-    {
-      pmt::pmt_t not_found  = pmt::from_bool(false);
-
-      std::string symbol_id = pmt::symbol_to_string(pmt::dict_ref(dict, pmt::intern("id"), not_found));
-      d_header_valid        = pmt::to_bool(pmt::dict_ref(dict, pmt::intern("is_valid"), not_found));
-      d_header_received     = true;
-
-      if (d_header_valid)
-      {
-        d_payload_len       = pmt::to_long(pmt::dict_ref(dict, pmt::intern("payload_len"), not_found));
-        d_cr                = pmt::to_long(pmt::dict_ref(dict, pmt::intern("cr"), not_found));
-        d_crc               = pmt::to_bool(pmt::dict_ref(dict, pmt::intern("crc"), not_found));
-        d_packet_symbol_len = 8 + std::max((4+d_cr)*(int)std::ceil((2.0*d_payload_len-d_sf+7+4*d_crc-5*!d_header)/(d_sf-2*d_ldr)), 0);
-
-        #if DEBUG >= DEBUG_INFO
-          std::cout << "PARSE HEADER" << std::endl;
-          std::cout << "id: " << symbol_id << std::endl;
-          std::cout << "payload_len: " << int(d_payload_len) << std::endl;
-          std::cout << "cr: " << int(d_cr) << std::endl;
-          std::cout << "crc: " << int(d_crc) << std::endl;
-          std::cout << "packet_symbol_len: " << int(d_packet_symbol_len) << std::endl;
-        #endif
-      }
-    }
-
-    void
-    detect_impl::dynamic_compensation(std::vector<uint16_t>& compensated_symbols)
-    {
-      float modulus   = 4.0;
-      float bin_drift = 0;
-      float bin_comp  = 0;
-      float v         = 0;
-      float v_last    = 1;
-      for (int i = 0; i < d_symbols.size(); i++)
-      {
-        v = d_symbols[i];
-
-        bin_drift = gr::lora::fpmod(v - v_last, modulus);
-
-        // compensate bin drift
-        if (bin_drift < modulus / 2) bin_comp -= bin_drift;
-        else bin_comp -= (bin_drift - modulus);
-        bin_comp = d_ldr ? bin_comp : 0;
-        v_last = v;
-        compensated_symbols.push_back(gr::lora::pmod(round(gr::lora::fpmod(v + bin_comp, d_num_symbols)), d_num_symbols));
-      }
-    }
-
-    void
     detect_impl::forecast (int noutput_items,
                           gr_vector_int &ninput_items_required)
     {
@@ -315,11 +253,6 @@ namespace gr {
 
       // Dechirp the incoming signal
       volk_32fc_x2_multiply_32fc(up_block, in, &d_downchirp[0], d_num_samples);
-
-      if (d_state == S_SFD_SYNC)
-      {
-        volk_32fc_x2_multiply_32fc(down_block, in, &d_upchirp[0], d_num_samples);
-      }
 
       // Enable to write IQ to disk for debugging
       #if DUMP_IQ
@@ -401,6 +334,14 @@ namespace gr {
 
         // Check for discontinuities that exceed some tolerance
         preamble_found = true;
+        {
+          std::time_t t = std::time(nullptr);
+          std::tm tm = *std::gmtime(&t);
+          std::ostringstream buffer;
+          buffer << std::put_time(&tm, d_filename_template.c_str());
+          d_current_filename = buffer.str();
+          std::cout << "Writing to " << d_current_filename << std::endl;
+        }
         for (int i = 1; i < REQUIRED_PREAMBLE_CHIRPS; i++)
         {
           uint32_t dis = gr::lora::pmod(int(d_preamble_idx) - int(d_argmax_history[i]), d_bin_size);
@@ -413,188 +354,17 @@ namespace gr {
         // Advance to SFD/sync discovery if a contiguous preamble is found
         if (preamble_found)
         {
-          d_state = S_SFD_SYNC;
+          d_state = S_OUTPUT;
 
           // move preamble peak to bin zero
           num_consumed = d_num_samples - d_p*d_preamble_idx/d_fft_size_factor;
 
           #if DEBUG >= DEBUG_INFO
-            std::cout << "Next state: S_SFD_SYNC" << std::endl;
+            std::cout << "Next state: S_OUTPUT" << std::endl;
           #endif
         }
         break;
       }
-
-
-
-      // Accurately synchronize to the SFD by computing overlapping FFTs of the downchirp/SFD IQ stream
-      // Effectively increases FFT's time-based resolution, allowing for a better sync
-      case S_SFD_SYNC:
-      {
-        d_overlaps = OVERLAP_FACTOR;
-
-        // Recover if the SFD is missed, or if we wind up in this state erroneously (false positive on preamble)
-        if (d_sync_recovery_counter++ > DEMOD_SYNC_RECOVERY_COUNT)
-        {
-          d_state = S_RESET;
-          d_overlaps = OVERLAP_DEFAULT;
-
-          #if DEBUG >= DEBUG_INFO
-            std::cout << "Bailing out of sync loop"   << std::endl;
-            std::cout << "Next state: S_RESET" << std::endl;
-          #endif
-        }
-
-        // Dechirp
-        volk_32fc_x2_multiply_32fc(down_block, in, &d_upchirp[0], d_num_samples);
-
-        // Enable to write out overlapped chirps to disk for debugging
-        #if DUMP_IQ
-          f_down.write((const char*)&down_block[0], d_num_samples*sizeof(gr_complex));
-        #endif
-
-        memset(d_fft->get_inbuf(),          0, d_fft_size*sizeof(gr_complex));
-        memcpy(d_fft->get_inbuf(), down_block, d_num_samples*sizeof(gr_complex));
-        d_fft->execute();
-
-        // Take argmax of downchirp FFT
-        max_idx_sfd = search_fft_peak(d_fft->get_outbuf(), fft_res_mag, fft_res_add, fft_res_add_c, &max_val_sfd);
-
-        // If SFD is detected
-        if (max_val_sfd > max_val)
-        {
-          int idx = max_idx_sfd;
-          if (max_idx_sfd > d_bin_size / 2) {
-            idx = max_idx_sfd - d_bin_size;
-          }
-          num_consumed = (int)round(2.25*d_num_samples + d_p*idx/2.0/d_fft_size_factor);
-
-          // refine CFO
-          volk_32fc_x2_multiply_32fc(up_block,
-            &in0[(int)round((DEMOD_HISTORY_DEPTH-1-5.25)*d_num_samples) + num_consumed],
-            &d_downchirp[0], d_num_samples);
-          memset(d_fft->get_inbuf(),        0, d_fft_size*sizeof(gr_complex));
-          memcpy(d_fft->get_inbuf(), up_block, d_num_samples*sizeof(gr_complex));
-          d_fft->execute();
-          d_cfo = (float)search_fft_peak(d_fft->get_outbuf(), fft_res_mag, fft_res_add, fft_res_add_c, &max_val);
-
-          d_state = S_READ_HEADER;
-
-          #if DEBUG >= DEBUG_INFO
-            std::cout << "Next state: S_READ_HEADER" << std::endl;
-            std::cout << "CFO: " << d_cfo << std::endl;
-          #endif
-
-          break;
-        }
-
-        break;
-      }
-
-
-
-      case S_READ_HEADER:
-      {
-        /* Preamble + modulo operation normalizes the symbols about the preamble; preamble symbol == value 0
-         * Dividing by d_fft_size_factor reduces symbols to [0:(2**sf)-1] range
-         * Dividing by 4 to further reduce symbol set to [0:(2**(sf-2)-1)], since header is sent at SF-2
-         */
-        float bin_idx = gr::lora::fpmod((max_idx - d_cfo)/(float)d_fft_size_factor, d_num_symbols);
-        #if DEBUG >= DEBUG_INFO
-          std::cout << "MIDX: " << bin_idx << ", MV: " << max_val << std::endl;
-        #endif
-        d_symbols.push_back( bin_idx );
-
-        if (d_symbols.size() == 8)   // Symbols [0:7] contain 2**(SF-2) bits/symbol, symbols [8:] have the full 2**(SF) bits
-        {
-          std::vector<uint16_t> compensated_symbols;
-          dynamic_compensation(compensated_symbols);
-          pmt::pmt_t header   = pmt::init_u16vector(compensated_symbols.size(), compensated_symbols);
-          pmt::pmt_t dict     = pmt::make_dict();
-          dict = pmt::dict_add(dict, pmt::intern("id"), pmt::intern("header"));
-          pmt::pmt_t msg_pair = pmt::cons(dict, header);
-          message_port_pub(d_out_port, msg_pair);
-        }
-        else if (d_symbols.size() > 8)
-        {
-          if (!d_header || (d_header && d_header_received))
-          {
-            if (d_header_received && !d_header_valid)
-            {
-              d_state = S_RESET;
-
-              #if DEBUG >= DEBUG_INFO
-                std::cout << "Invalid header received" << std::endl;
-              #endif
-            }
-            else
-            {
-              d_state = S_READ_PAYLOAD;
-
-              #if DEBUG >= DEBUG_INFO
-                std::cout << "Next state: S_READ_PAYLOAD" << std::endl;
-              #endif
-            }
-          }
-          // wait for header parsing
-        }
-
-        break;
-      }
-
-
-      case S_READ_PAYLOAD:
-      {
-        if (d_symbols.size() >= d_packet_symbol_len)
-        {
-          d_state = S_OUT;
-
-          #if DEBUG >= DEBUG_INFO
-            std::cout << "Next state: S_OUT" << std::endl;
-          #endif
-        }
-        else {
-          /* Preamble + modulo operation normalizes the symbols about the preamble; preamble symbol == value 0
-          * Dividing by d_fft_size_factor reduces symbols to [0:(2**sf)-1] range
-          */
-          float bin_idx = gr::lora::fpmod((max_idx - d_cfo)/(float)d_fft_size_factor, d_num_symbols);
-          #if DEBUG >= DEBUG_INFO
-            std::cout << "MIDX: " << bin_idx << ", MV: " << max_val << std::endl;
-          #endif
-          d_symbols.push_back( bin_idx );
-        }
-
-        break;
-      }
-
-
-
-      // Emit a PDU to the decoder
-      case S_OUT:
-      {
-        std::vector<uint16_t> compensated_symbols;
-        dynamic_compensation(compensated_symbols);
-        pmt::pmt_t output = pmt::init_u16vector(compensated_symbols.size(), compensated_symbols);
-        pmt::pmt_t dict = pmt::make_dict();
-        dict = pmt::dict_add(dict, pmt::intern("id"), pmt::intern("packet"));
-        pmt::pmt_t msg_pair = pmt::cons(dict, output);
-        message_port_pub(d_out_port, msg_pair);
-
-        d_state = S_RESET;
-        #if DEBUG >= DEBUG_INFO
-          std::cout << "Next state: S_RESET" << std::endl;
-          std::cout << "d_symbols size: " << d_symbols.size() << std::endl;
-          std::cout << "compensated_symbols: ";
-          for (auto i: compensated_symbols) {
-            std::cout << i << " ";
-          }
-          std::cout << std::endl;
-        #endif
-
-        break;
-      }
-
-
 
       default:
         break;
