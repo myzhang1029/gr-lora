@@ -31,9 +31,7 @@
 #define DEBUG_OFF     0
 #define DEBUG_INFO    1
 #define DEBUG_VERBOSE 2
-#define DEBUG         DEBUG_OFF
-
-#define DUMP_IQ       0
+#define DEBUG         DEBUG_INFO
 
 #define OVERLAP_DEFAULT 1
 #define OVERLAP_FACTOR  16
@@ -48,7 +46,7 @@ namespace gr {
                   uint8_t   peak_search_algorithm,
                   uint16_t  peak_search_phase_k,
                   float     fs_bw_ratio,
-                  uint16_t  on_length,
+                  uint32_t  on_length,
                   const std::string &filename_template)
     {
       return gnuradio::get_initial_sptr
@@ -64,7 +62,7 @@ namespace gr {
                               uint8_t   peak_search_algorithm,
                               uint16_t  peak_search_phase_k,
                               float     fs_bw_ratio,
-                              uint16_t  on_length,
+                              uint32_t  on_length,
                               const std::string &filename_template)
       : gr::block("detect",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
@@ -209,6 +207,49 @@ namespace gr {
       return max_idx;
     }
 
+    void detect_impl::open_out_file(void)
+    {
+      std::time_t t = std::time(nullptr);
+      std::tm tm = *std::gmtime(&t);
+      std::stringstream buffer;
+      // strftime processing must be before XXXX replacement, so that
+      // %XXXX becomes "localized time representation" + "XXX", instead of
+      // introducing a random specifier
+      buffer << std::put_time(&tm, d_filename_template.c_str());
+      d_current_filename = buffer.str();
+      // If there is XXXX in the filename template, replace it with a four-digit random hex number
+      std::string::size_type pos = d_current_filename.find("XXXX");
+      if (pos != std::string::npos)
+      {
+        std::stringstream ss;
+        ss << std::hex << std::setw(4) << std::setfill('0') << std::rand() % 0x10000;
+        d_current_filename.replace(pos, 4, ss.str());
+      }
+      std::cout << "Writing to " << d_current_filename << std::endl;
+      f_current_out.open(d_current_filename, std::ios::binary | std::ios::out);
+    }
+
+    void detect_impl::abort_out_file(void)
+    {
+      if (f_current_out.is_open())
+      {
+        f_current_out.close();
+        std::remove(d_current_filename.c_str());
+      }
+      std::cout << "Aborted writing to " << d_current_filename << std::endl;
+      d_current_filename.clear();
+    }
+
+    void detect_impl::finalize_out_file(void)
+    {
+      if (f_current_out.is_open())
+      {
+        f_current_out.close();
+      }
+      std::cout << "Finished writing to " << d_current_filename << std::endl;
+      d_current_filename.clear();
+    }
+
     int
     detect_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
@@ -221,11 +262,8 @@ namespace gr {
 
       uint32_t num_consumed   = d_num_samples;
       uint32_t max_idx        = 0;
-      uint32_t max_idx_sfd    = 0;
       bool         preamble_found = false;
-      bool         sfd_found      = false;
       float        max_val        = 0;
-      float        max_val_sfd    = 0;
 
       // Nomenclature:
       //  up_block   == de-chirping buffer to contain upchirp features: the preamble, sync word, and data chirps
@@ -245,36 +283,22 @@ namespace gr {
       // Dechirp the incoming signal
       volk_32fc_x2_multiply_32fc(up_block, in, &d_downchirp[0], d_num_samples);
 
-      // Enable to write IQ to disk for debugging
-      #if DUMP_IQ
-        f_up_windowless.write((const char*)&up_block[0], d_num_samples*sizeof(gr_complex));
-      #endif
-
-      // Windowing
-      // volk_32fc_32f_multiply_32fc(up_block, up_block, &d_window[0], d_num_samples);
-
-      #if DUMP_IQ
-        if (d_state != S_SFD_SYNC) f_down.write((const char*)&down_block[0], d_num_samples*sizeof(gr_complex));
-        f_up.write((const char*)&up_block[0], d_num_samples*sizeof(gr_complex));
-      #endif
-
       // Preamble and Data FFT
       // If d_fft_size_factor is greater than 1, the rest of the sample buffer will be zeroed out and blend into the window
       memset(d_fft->get_inbuf(),            0, d_fft_size*sizeof(gr_complex));
       memcpy(d_fft->get_inbuf(), &up_block[0], d_num_samples*sizeof(gr_complex));
       d_fft->execute();
-      #if DUMP_IQ
-        f_fft.write((const char*)d_fft->get_outbuf(), d_fft_size*sizeof(gr_complex));
-      #endif
 
       // Take argmax of returned FFT (similar to MFSK demod)
       max_idx = search_fft_peak(d_fft->get_outbuf(), fft_res_mag, fft_res_add, fft_res_add_c, &max_val);
 
       d_argmax_history.insert(d_argmax_history.begin(), max_idx);
+      d_saved_maybe_preamble.insert(d_saved_maybe_preamble.begin(), std::vector<gr_complex>(in, in+d_num_samples));
 
       if (d_argmax_history.size() > REQUIRED_PREAMBLE_CHIRPS)
       {
         d_argmax_history.pop_back();
+        d_saved_maybe_preamble.pop_back();
       }
 
       switch (d_state) {
@@ -284,6 +308,7 @@ namespace gr {
         d_offset = 0;
         d_symbols.clear();
         d_argmax_history.clear();
+        d_saved_maybe_preamble.clear();
         d_sfd_history.clear();
         d_sync_recovery_counter = 0;
         d_header_received = false;
@@ -296,8 +321,6 @@ namespace gr {
 
         break;
       }
-
-
 
       case S_PREFILL:
       {
@@ -312,8 +335,6 @@ namespace gr {
         break;
       }
 
-
-
       // Looks for the same symbol appearing consecutively, signifying the LoRa preamble
       case S_DETECT_PREAMBLE:
       {
@@ -325,14 +346,7 @@ namespace gr {
 
         // Check for discontinuities that exceed some tolerance
         preamble_found = true;
-        {
-          std::time_t t = std::time(nullptr);
-          std::tm tm = *std::gmtime(&t);
-          std::ostringstream buffer;
-          buffer << std::put_time(&tm, d_filename_template.c_str());
-          d_current_filename = buffer.str();
-          std::cout << "Writing to " << d_current_filename << std::endl;
-        }
+
         for (int i = 1; i < REQUIRED_PREAMBLE_CHIRPS; i++)
         {
           uint32_t dis = gr::lora::pmod(int(d_preamble_idx) - int(d_argmax_history[i]), d_bin_size);
@@ -342,10 +356,17 @@ namespace gr {
           }
         }
 
-        // Advance to SFD/sync discovery if a contiguous preamble is found
+        // Advance to saving the packet if a contiguous preamble is found
         if (preamble_found)
         {
           d_state = S_OUTPUT;
+          open_out_file();
+          // Write the preamble to the file
+          for (int i = 0; i < REQUIRED_PREAMBLE_CHIRPS; i++)
+          {
+            f_current_out.write((char*)&d_saved_maybe_preamble[i][0], d_num_samples*sizeof(gr_complex));
+          }
+          d_current_written = REQUIRED_PREAMBLE_CHIRPS*d_num_samples;
 
           // move preamble peak to bin zero
           num_consumed = d_num_samples - d_p*d_preamble_idx/d_fft_size_factor;
@@ -357,13 +378,26 @@ namespace gr {
         break;
       }
 
-      default:
+      case S_OUTPUT:
+      {
+        f_current_out.write((char*)in, d_num_samples*sizeof(gr_complex));
+        d_current_written += d_num_samples;
+        num_consumed = d_num_samples;
+        if (d_current_written >= d_on_length)
+        {
+          finalize_out_file();
+          d_state = S_RESET;
+
+          #if DEBUG >= DEBUG_INFO
+            std::cout << "Next state: S_RESET" << std::endl;
+          #endif
+        }
         break;
       }
 
-      #if DUMP_IQ
-        f_raw.write((const char*)&in[0], num_consumed*sizeof(gr_complex));
-      #endif
+      default:
+        break;
+      }
 
       consume_each (num_consumed);
 

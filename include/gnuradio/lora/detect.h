@@ -71,7 +71,7 @@ namespace gr {
                         uint8_t   peak_search_algorithm,
                         uint16_t  peak_search_phase_k,
                         float     fs_bw_ratio,
-                        uint16_t  on_length,
+                        uint32_t  on_length,
                         const std::string &filename_template);
     };
 

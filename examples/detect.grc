@@ -22,7 +22,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Rx File
+    title: Detect from File
     window_size: ''
   states:
     bus_sink: false
@@ -192,9 +192,9 @@ blocks:
     beta: '25.0'
     comment: ''
     fft_factor: '10'
-    filename_template: '%Y-%m-%d_%H%M%S.dat'
+    filename_template: '%Y-%m-%d_%H%M%S_XXXX.dat'
     fs_bw_ratio: '2'
-    on_length: '1'
+    on_length: '30000'
     peak_search_algorithm: '0'
     peak_search_phase_k: '4'
     spreading_factor: '8'

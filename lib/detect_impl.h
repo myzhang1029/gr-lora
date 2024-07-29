@@ -47,13 +47,8 @@ namespace gr {
 
       detect_state_t d_state;
       uint8_t d_sf;
-      uint8_t d_cr;
-      uint8_t d_payload_len;
-      bool d_crc;
       bool d_ldr;
-      bool d_header;
       bool d_header_received;
-      bool d_header_valid;
 
       uint16_t d_num_symbols;
       uint16_t d_fft_size_factor;
@@ -65,12 +60,7 @@ namespace gr {
       uint32_t d_bin_size;
       uint32_t d_preamble_drift_max;
 
-      uint32_t d_packet_symbol_len;
-
-      float d_cfo;
-
       uint32_t d_preamble_idx;
-      uint16_t d_sfd_idx;
       std::vector<uint32_t> d_argmax_history;
       std::vector<uint16_t> d_sfd_history;
       uint16_t d_sync_recovery_counter;
@@ -87,22 +77,13 @@ namespace gr {
 
       std::vector<float> d_symbols;
 
-      std::ofstream f_current_out;
-      std::string d_current_filename;
-
-      uint16_t d_on_length;
+      uint32_t d_on_length;
       std::string d_filename_template;
 
-     public:
-      detect_impl( uint8_t   spreading_factor,
-                  float     beta,
-                  uint16_t  fft_factor,
-                  uint8_t   peak_search_algorithm,
-                  uint16_t  peak_search_phase_k,
-                  float     fs_bw_ratio,
-                  uint16_t  on_length,
-                  const std::string &filename_template);
-      ~detect_impl();
+      std::ofstream f_current_out;
+      std::string d_current_filename;
+      std::vector<std::vector<gr_complex>> d_saved_maybe_preamble;
+      uint32_t d_current_written;
 
       uint16_t argmax(gr_complex *fft_result);
       uint32_t argmax_32f(float *fft_result, float *max_val_p);
@@ -111,6 +92,20 @@ namespace gr {
                                    gr_complex *buffer_c, float *max_val_p);
       uint32_t fft_add(const lv_32fc_t *fft_result, float *buffer, gr_complex *buffer_c,
                            float *max_val_p, float phase_offset);
+      void open_out_file(void);
+      void abort_out_file(void);
+      void finalize_out_file(void);
+
+     public:
+      detect_impl( uint8_t   spreading_factor,
+                  float     beta,
+                  uint16_t  fft_factor,
+                  uint8_t   peak_search_algorithm,
+                  uint16_t  peak_search_phase_k,
+                  float     fs_bw_ratio,
+                  uint32_t  on_length,
+                  const std::string &filename_template);
+      ~detect_impl();
 
       // Where all the action really happens
 

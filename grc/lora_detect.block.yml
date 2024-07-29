@@ -35,9 +35,9 @@ parameters:
     dtype: int
     default: '1'
 -   id: filename_template
-    label: Filename Template (strftime format)
+    label: Filename Template (strftime format, XXXX will become a unique string)
     dtype: string
-    default: '%Y-%m-%d_%H%M%S.dat'
+    default: '%Y-%m-%d_%H%M%S_XXXX.dat'
 
 inputs:
 -   domain: stream
